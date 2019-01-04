@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Thomas Eyes</string>
+    <string name="scanbutton">Scan</string>
+    <string name="title_activity_blescan">Bluetooth Scan</string>
+    <string name="action_settings">Settings</string>
+    <string name="selecteyes">Select Eye Mechanism</string>
+    <string name="scanning">Looking for eye mechanisms...</string>
+    <string name="help_img_desc">Help Icon</string>
+    <string name="ble_not_supported">Bluetooth Low Energy is not supported on this device</string>
+    <string name="paired">paired</string>
+    <string name="scan">Scan</string>
+    <string name="cancel">Cancel</string>
+    <string name="ble_perms_granted">Bluetooth permissions granted</string>
+    <string name="ble_perms_denied">Bluetooth permissions are required for application functionality</string>
+    <string name="scan_failed">Bluetooth scan failed</string>
+</resources>
