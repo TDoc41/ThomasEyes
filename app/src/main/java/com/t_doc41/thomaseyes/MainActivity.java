@@ -31,6 +31,9 @@ import android.widget.Toast;
 import java.awt.font.NumericShaper;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -148,8 +151,10 @@ public class MainActivity extends AppCompatActivity
                                 joystickView.setBorderWidth(8);
                                 joystickView.setBorderColor(Color.GREEN);
 
+                                final PacketStore packetStore = new PacketStore(21);
                                 joystickView.setOnMoveListener(new JoystickView.OnMoveListener()
                                 {
+
                                     int degLimit = 180;
 
                                     private int maxpulse = 2540;
@@ -196,25 +201,34 @@ public class MainActivity extends AppCompatActivity
                                         }
 
                                         int absX = (int) Math.abs(currentPulseX - prevPulse);
-                                        if (absX >= 5)
+                                        if (absX > 0)
                                         {
-                                            log("THREADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD: "+Thread.currentThread().getName());
-                                            mService.writeRXCharacteristic(String.valueOf(currentPulseX).getBytes());
-                                            try
-                                            {
-                                                long servoMDelay = (long) (1000 * SERVO_SPEED * absX);
-//                                                Thread.sleep(servoMDelay);
-                                                log("Moved to pulse: " + currentPulseX + " - Slept: " + servoMDelay);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                /* Nothing to do */
-                                            }
+                                            packetStore.submitData(String.valueOf(currentPulseX));
                                         }
 
                                         prevPulse = currentPulseX;
                                     }
-                                }, 85);
+                                }, 25);
+
+                                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        try
+                                        {
+                                            String packet = packetStore.takePacket();
+                                            if (packet != null)
+                                            {
+                                                mService.writeRXCharacteristic(packet.getBytes());
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Log.e(MainActivity.class.getSimpleName().toUpperCase(), e.getMessage(), e);
+                                        }
+                                    }
+                                }, 0, 75, TimeUnit.MILLISECONDS);
 
                                 rta2.addView(joystickView);
                             }
