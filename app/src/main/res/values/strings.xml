@@ -13,4 +13,14 @@
     <string name="ble_perms_granted">Bluetooth permissions granted</string>
     <string name="ble_perms_denied">Bluetooth permissions are required for application functionality</string>
     <string name="scan_failed">Bluetooth scan failed</string>
+    <string name="bluetooth_scan_label">Bluetooth Scan</string>
+    <string name="bluetooth_img_desc">Bluetooth symbol</string>
+    <string name="ble_enabled">Bluetooth enabled</string>
+    <string name="popup_no">No</string>
+    <string name="popup_yes">Yes</string>
+    <string name="popup_message">Do you want to quit this Application?</string>
+    <string name="popup_title">Quit Thomas Eyes</string>
+    <string name="running_in_background">Thomas Eyes is still running in the background. \nPlease disconnect all bluetooth devices to exit.</string>
+    <string name="uart_not_supported">Device does not support UART. Disconnecting....</string>
+    <string name="disconnect_button">Disconnect</string>
 </resources>
