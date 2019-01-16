@@ -10,7 +10,7 @@ import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 public class ThomasJoyStick extends JoystickView
 {
-    private static float jsRange = 200.0f;
+    private static float jsRange = 1024.0f;
     private int mPosX = 0;
     private int mPosY = 0;
     private int mButtonRadius = 0;
