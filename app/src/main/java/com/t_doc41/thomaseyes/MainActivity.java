@@ -31,6 +31,9 @@ import android.widget.Toast;
 import java.awt.font.NumericShaper;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -52,6 +55,8 @@ public class MainActivity extends AppCompatActivity
     private int mState = Constants.UART_PROFILE_DISCONNECTED;
     private BluetoothAdapter mBtAdapter;
 
+    private AtomicBoolean writeable = new AtomicBoolean(true);
+
     //UART service connected/disconnected
     private ServiceConnection mServiceConnection = new ServiceConnection()
     {
@@ -68,6 +73,7 @@ public class MainActivity extends AppCompatActivity
 
         public void onServiceDisconnected(ComponentName classname)
         {
+            Log.w(MainActivity.class.getSimpleName().toUpperCase(), "Bluetooth service has disconnected. Component name:" + classname);
             mService = null;
         }
     };
@@ -139,7 +145,7 @@ public class MainActivity extends AppCompatActivity
                                         return super.onTouchEvent(event);
                                     }
                                 };
-                                TableRow.LayoutParams params = new TableRow.LayoutParams(MATCH_PARENT_ROW, 400, 1);
+                                TableRow.LayoutParams params = new TableRow.LayoutParams(MATCH_PARENT_ROW, 850, 1);
 
                                 joystickView.setId(tl.getChildCount() + rta2.getChildCount());
                                 joystickView.setLayoutParams(params);
@@ -150,77 +156,30 @@ public class MainActivity extends AppCompatActivity
 
                                 joystickView.setOnMoveListener(new JoystickView.OnMoveListener()
                                 {
-                                    int degLimit = 180;
-
-                                    private int maxpulse = 2540;
-                                    private int minpulse = 510;
-                                    private int midpulse = ((maxpulse - minpulse) / 2) + minpulse;
-
-                                    private int pulserange = maxpulse - minpulse;
-                                    private double joyStickPostionRatio = pulserange / 100.0;
-                                    private int servoRangeDeg = 180;
-                                    private double servoDegPulseRatio = pulserange / (double) servoRangeDeg;
-                                    private int joystickPositions = 100;
-                                    private final double SERVO_SPEED = 0.09d / (((pulserange / servoRangeDeg) * 60.0d));
-
-                                    int pmDegLimit = (int) (degLimit * servoDegPulseRatio) / 2;
-
-                                    private int prevPulse = midpulse;
-
-                                    private int calcPulse(final int x)
-                                    {
-                                        return (int) (((x * (servoRangeDeg / joystickPositions)) * joyStickPostionRatio) + minpulse);
-                                    }
+                                    private int prevPulse = -1;
 
                                     @Override
-                                    public synchronized void onMove(int angle, int strength)
+                                    public void onMove(int angle, int strength)
                                     {
-                                        int currentPulseX = calcPulse(joystickView.getNormalizedX());
-                                        int currentPulseY = calcPulse(joystickView.getNormalizedY());
-
-                                        if (currentPulseX > midpulse + pmDegLimit)
+                                        int currPulse = joystickView.getNormalizedX();
+                                        if (prevPulse == -1 || currPulse != prevPulse)
                                         {
-                                            currentPulseX = midpulse + pmDegLimit;
+                                            mService.writeRXCharacteristic(String.valueOf(currPulse).getBytes());
                                         }
-                                        if (currentPulseX < midpulse - pmDegLimit)
-                                        {
-                                            currentPulseX = midpulse - pmDegLimit;
-                                        }
-                                        if (currentPulseY > midpulse + pmDegLimit)
-                                        {
-                                            currentPulseY = midpulse + pmDegLimit;
-                                        }
-                                        if (currentPulseY < midpulse - pmDegLimit)
-                                        {
-                                            currentPulseY = midpulse - pmDegLimit;
-                                        }
-
-                                        int absX = (int) Math.abs(currentPulseX - prevPulse);
-                                        if (absX >= 5)
-                                        {
-                                            log("THREADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD: "+Thread.currentThread().getName());
-                                            mService.writeRXCharacteristic(String.valueOf(currentPulseX).getBytes());
-                                            try
-                                            {
-                                                long servoMDelay = (long) (1000 * SERVO_SPEED * absX);
-//                                                Thread.sleep(servoMDelay);
-                                                log("Moved to pulse: " + currentPulseX + " - Slept: " + servoMDelay);
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                /* Nothing to do */
-                                            }
-                                        }
-
-                                        prevPulse = currentPulseX;
+                                        prevPulse = currPulse;
                                     }
-                                }, 85);
+                                }, 1000/100);
 
                                 rta2.addView(joystickView);
-                            }
+                            }//
                         });
                     }
                 });
+            }
+
+            if (action.equals("write"))
+            {
+                log("write");
             }
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED))
@@ -239,28 +198,6 @@ public class MainActivity extends AppCompatActivity
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED))
             {
                 mService.enableTXNotification();
-            }
-
-            if (action.equals(UartService.ACTION_DATA_AVAILABLE))
-            {
-//                final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
-//                runOnUiThread(new Runnable()
-//                {
-//                    public void run()
-//                    {
-//                        try
-//                        {
-//                            String text = new String(txValue, "UTF-8");
-//                            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-//                            listAdapter.add("[" + currentDateTimeString + "] RX: " + text);
-//                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-//                        }
-//                        catch (Exception e)
-//                        {
-//                            Log.e(TAG, e.toString());
-//                        }
-//                    }
-//                });
             }
 
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART))
@@ -295,12 +232,15 @@ public class MainActivity extends AppCompatActivity
     {
         Intent bindIntent = new Intent(this, UartService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
         intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
+        intentFilter.addAction("write");
+
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, intentFilter);
     }
 

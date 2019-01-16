@@ -132,6 +132,12 @@ public class UartService extends Service
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status)
+        {
+            broadcastUpdate("write");
+        }
     };
 
     private void broadcastUpdate(final String action) {
@@ -344,8 +350,9 @@ public class UartService extends Service
             return;
         }
         RxChar.setValue(value);
+//        RxChar.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+        Log.d("UARTSERVICE", "type: "+ RxChar.getWriteType());
     	boolean status = mBluetoothGatt.writeCharacteristic(RxChar);
-    	
         Log.d(TAG, "write TXchar - status=" + status);
     }
     
