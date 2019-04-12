@@ -28,20 +28,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.Toast;
 
-import java.awt.font.NumericShaper;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Random;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
@@ -156,19 +143,26 @@ public class MainActivity extends AppCompatActivity
 
                                 joystickView.setOnMoveListener(new JoystickView.OnMoveListener()
                                 {
-                                    private int prevPulse = -1;
+                                    private int prevPulseX = -1;
+                                    private int prevPulseY = -1;
 
                                     @Override
                                     public void onMove(int angle, int strength)
                                     {
-                                        int currPulse = joystickView.getNormalizedX();
-                                        if (prevPulse == -1 || currPulse != prevPulse)
+                                        int currPulseX = joystickView.getNormalizedX();
+                                        int currPulseY = joystickView.getNormalizedY();
+                                        if (prevPulseX == -1 || currPulseX != prevPulseX)
                                         {
-                                            mService.writeRXCharacteristic(String.valueOf(currPulse).getBytes());
+                                            mService.writeRXCharacteristic(String.valueOf("X" + currPulseX).getBytes());
+                                            prevPulseX = currPulseX;
                                         }
-                                        prevPulse = currPulse;
+                                        if (prevPulseY == -1 || currPulseY != prevPulseY)
+                                        {
+                                            mService.writeRXCharacteristic(String.valueOf("Y" + currPulseY).getBytes());
+                                            prevPulseY = currPulseY;
+                                        }
                                     }
-                                }, 1000/100);
+                                }, 1);
 
                                 rta2.addView(joystickView);
                             }//
@@ -179,7 +173,7 @@ public class MainActivity extends AppCompatActivity
 
             if (action.equals("write"))
             {
-                log("write");
+//                log("write");
             }
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED))

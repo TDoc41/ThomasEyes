@@ -351,7 +351,7 @@ public class UartService extends Service
         }
         RxChar.setValue(value);
 //        RxChar.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-        Log.d("UARTSERVICE", "type: "+ RxChar.getWriteType());
+//        Log.d("UARTSERVICE", "type: "+ RxChar.getWriteType());
     	boolean status = mBluetoothGatt.writeCharacteristic(RxChar);
         Log.d(TAG, "write TXchar - status=" + status);
     }
